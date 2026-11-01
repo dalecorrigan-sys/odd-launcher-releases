@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-5fagVRejHotFLbCirpgRtQWXmPFE70vHIM92hQ0cy2A='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-SCfRbvkB1LwZBdsTEA6sPUFLxf/yGeTLnYZ/CdCZoBo='; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="list-revision" content="5">
 <title>Set up your launcher</title>
@@ -252,11 +252,15 @@
 (function () {
   var TEAMS = [{"id":"admin","name":"Admin (all websites)"},{"id":"area-manager","name":"Area manager"},{"id":"talent-manager","name":"Talent manager"},{"id":"sales","name":"Sales"},{"id":"administrator","name":"Office administrator"},{"id":"finance","name":"Finance"}];
   var ID = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-  var asked = new URLSearchParams(location.search).getAll("team");
+  var SIG = /^[A-Za-z0-9_-]{171}$/;
+  var query = new URLSearchParams(location.search);
+  var asked = query.getAll("team");
+  var signed = query.getAll("sig");
   var raw = asked.length === 1 ? asked[0] : "";
+  var sig = signed.length === 1 ? signed[0] : "";
   var team = null;
   var variant = "missing";
-  if (raw.length <= 40 && ID.test(raw)) {
+  if (raw.length <= 40 && ID.test(raw) && SIG.test(sig)) {
     variant = "outdated";
     for (var i = 0; i < TEAMS.length; i++) {
       if (TEAMS[i].id === raw) { team = TEAMS[i]; variant = "team"; }
@@ -265,7 +269,7 @@
   var shown = document.querySelectorAll("[data-variant]");
   for (var j = 0; j < shown.length; j++) shown[j].hidden = shown[j].getAttribute("data-variant") !== variant;
   if (team) {
-    document.getElementById("finish").setAttribute("href", "odd-launcher://team/" + team.id);
+    document.getElementById("finish").setAttribute("href", "odd-launcher://team/" + team.id + "/" + sig);
     var names = document.querySelectorAll("[data-team-name]");
     for (var k = 0; k < names.length; k++) names[k].textContent = team.name;
   }
